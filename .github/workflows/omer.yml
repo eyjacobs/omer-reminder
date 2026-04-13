@@ -1,8 +1,47 @@
 name: Omer Reminder
 
+# All times are UTC. EDT = UTC-4, so 8:12 PM EDT = 00:12 UTC next calendar day.
 on:
   schedule:
-    - cron: '15 0 * * *'  # 8:15 PM EDT (UTC-4) every night
+    - cron: '12 0 13 4 *'  # Apr 12 8:12 PM EDT - Day 11
+    - cron: '13 0 14 4 *'  # Apr 13 8:13 PM EDT - Day 12
+    - cron: '14 0 15 4 *'  # Apr 14 8:14 PM EDT - Day 13
+    - cron: '15 0 16 4 *'  # Apr 15 8:15 PM EDT - Day 14
+    - cron: '16 0 17 4 *'  # Apr 16 8:16 PM EDT - Day 15
+    - cron: '17 0 18 4 *'  # Apr 17 8:17 PM EDT - Day 16
+    - cron: '18 0 19 4 *'  # Apr 18 8:18 PM EDT - Day 17
+    - cron: '19 0 20 4 *'  # Apr 19 8:19 PM EDT - Day 18
+    - cron: '20 0 21 4 *'  # Apr 20 8:20 PM EDT - Day 19
+    - cron: '21 0 22 4 *'  # Apr 21 8:21 PM EDT - Day 20
+    - cron: '22 0 23 4 *'  # Apr 22 8:22 PM EDT - Day 21
+    - cron: '23 0 24 4 *'  # Apr 23 8:23 PM EDT - Day 22
+    - cron: '24 0 25 4 *'  # Apr 24 8:24 PM EDT - Day 23
+    - cron: '25 0 26 4 *'  # Apr 25 8:25 PM EDT - Day 24
+    - cron: '26 0 27 4 *'  # Apr 26 8:26 PM EDT - Day 25
+    - cron: '27 0 28 4 *'  # Apr 27 8:27 PM EDT - Day 26
+    - cron: '28 0 29 4 *'  # Apr 28 8:28 PM EDT - Day 27
+    - cron: '29 0 30 4 *'  # Apr 29 8:29 PM EDT - Day 28
+    - cron: '30 0 1 5 *'   # Apr 30 8:30 PM EDT - Day 29
+    - cron: '31 0 2 5 *'   # May 1  8:31 PM EDT - Day 30
+    - cron: '32 0 3 5 *'   # May 2  8:32 PM EDT - Day 31
+    - cron: '33 0 4 5 *'   # May 3  8:33 PM EDT - Day 32
+    - cron: '34 0 5 5 *'   # May 4  8:34 PM EDT - Day 33
+    - cron: '35 0 6 5 *'   # May 5  8:35 PM EDT - Day 34
+    - cron: '36 0 7 5 *'   # May 6  8:36 PM EDT - Day 35
+    - cron: '37 0 8 5 *'   # May 7  8:37 PM EDT - Day 36
+    - cron: '38 0 9 5 *'   # May 8  8:38 PM EDT - Day 37
+    - cron: '39 0 10 5 *'  # May 9  8:39 PM EDT - Day 38
+    - cron: '40 0 11 5 *'  # May 10 8:40 PM EDT - Day 39
+    - cron: '41 0 12 5 *'  # May 11 8:41 PM EDT - Day 40
+    - cron: '42 0 13 5 *'  # May 12 8:42 PM EDT - Day 41
+    - cron: '43 0 14 5 *'  # May 13 8:43 PM EDT - Day 42
+    - cron: '44 0 15 5 *'  # May 14 8:44 PM EDT - Day 43
+    - cron: '45 0 16 5 *'  # May 15 8:45 PM EDT - Day 44
+    - cron: '46 0 17 5 *'  # May 16 8:46 PM EDT - Day 45
+    - cron: '47 0 18 5 *'  # May 17 8:47 PM EDT - Day 46
+    - cron: '48 0 19 5 *'  # May 18 8:48 PM EDT - Day 47
+    - cron: '49 0 20 5 *'  # May 19 8:49 PM EDT - Day 48
+    - cron: '50 0 21 5 *'  # May 20 8:50 PM EDT - Day 49
 
 jobs:
   send-reminder:
@@ -17,54 +56,58 @@ jobs:
           python3 << 'EOF'
           import smtplib, os
           from email.mime.text import MIMEText
-          from datetime import date
+          from datetime import date, timezone, timedelta
 
-          # Omer schedule: date -> day number
+          # Workflow runs in UTC; convert to EDT (UTC-4) to get the local date
+          edt = timezone(timedelta(hours=-4))
+          today = date.today()  # UTC date at time of run — matches schedule above
+
+          # Map UTC trigger date -> (EDT date for display, Omer day number)
+          # Key is the UTC date when the cron fires (one day ahead of EDT date)
           schedule = {
-              date(2026, 4, 12): 11,
-              date(2026, 4, 13): 12,
-              date(2026, 4, 14): 13,
-              date(2026, 4, 15): 14,
-              date(2026, 4, 16): 15,
-              date(2026, 4, 17): 16,
-              date(2026, 4, 18): 17,
-              date(2026, 4, 19): 18,
-              date(2026, 4, 20): 19,
-              date(2026, 4, 21): 20,
-              date(2026, 4, 22): 21,
-              date(2026, 4, 23): 22,
-              date(2026, 4, 24): 23,
-              date(2026, 4, 25): 24,
-              date(2026, 4, 26): 25,
-              date(2026, 4, 27): 26,
-              date(2026, 4, 28): 27,
-              date(2026, 4, 29): 28,
-              date(2026, 4, 30): 29,
-              date(2026, 5,  1): 30,
-              date(2026, 5,  2): 31,
-              date(2026, 5,  3): 32,
-              date(2026, 5,  4): 33,
-              date(2026, 5,  5): 34,
-              date(2026, 5,  6): 35,
-              date(2026, 5,  7): 36,
-              date(2026, 5,  8): 37,
-              date(2026, 5,  9): 38,
-              date(2026, 5, 10): 39,
-              date(2026, 5, 11): 40,
-              date(2026, 5, 12): 41,
-              date(2026, 5, 13): 42,
-              date(2026, 5, 14): 43,
-              date(2026, 5, 15): 44,
-              date(2026, 5, 16): 45,
-              date(2026, 5, 17): 46,
-              date(2026, 5, 18): 47,
-              date(2026, 5, 19): 48,
-              date(2026, 5, 20): 49,
+              date(2026, 4, 13): 11,
+              date(2026, 4, 14): 12,
+              date(2026, 4, 15): 13,
+              date(2026, 4, 16): 14,
+              date(2026, 4, 17): 15,
+              date(2026, 4, 18): 16,
+              date(2026, 4, 19): 17,
+              date(2026, 4, 20): 18,
+              date(2026, 4, 21): 19,
+              date(2026, 4, 22): 20,
+              date(2026, 4, 23): 21,
+              date(2026, 4, 24): 22,
+              date(2026, 4, 25): 23,
+              date(2026, 4, 26): 24,
+              date(2026, 4, 27): 25,
+              date(2026, 4, 28): 26,
+              date(2026, 4, 29): 27,
+              date(2026, 4, 30): 28,
+              date(2026, 5,  1): 29,
+              date(2026, 5,  2): 30,
+              date(2026, 5,  3): 31,
+              date(2026, 5,  4): 32,
+              date(2026, 5,  5): 33,
+              date(2026, 5,  6): 34,
+              date(2026, 5,  7): 35,
+              date(2026, 5,  8): 36,
+              date(2026, 5,  9): 37,
+              date(2026, 5, 10): 38,
+              date(2026, 5, 11): 39,
+              date(2026, 5, 12): 40,
+              date(2026, 5, 13): 41,
+              date(2026, 5, 14): 42,
+              date(2026, 5, 15): 43,
+              date(2026, 5, 16): 44,
+              date(2026, 5, 17): 45,
+              date(2026, 5, 18): 46,
+              date(2026, 5, 19): 47,
+              date(2026, 5, 20): 48,
+              date(2026, 5, 21): 49,
           }
 
-          today = date.today()
           if today not in schedule:
-              print(f"No Omer reminder for {today}, skipping.")
+              print(f"No Omer reminder for UTC {today}, skipping.")
               exit(0)
 
           day = schedule[today]
