@@ -1,0 +1,86 @@
+name: Omer Reminder
+
+on:
+  schedule:
+    - cron: '15 0 * * *'  # 8:15 PM EDT (UTC-4) every night
+
+jobs:
+  send-reminder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Omer reminder
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
+          PHONE: ${{ secrets.PHONE }}
+        run: |
+          python3 << 'EOF'
+          import smtplib, os
+          from email.mime.text import MIMEText
+          from datetime import date
+
+          # Omer schedule: date -> day number
+          schedule = {
+              date(2026, 4, 12): 11,
+              date(2026, 4, 13): 12,
+              date(2026, 4, 14): 13,
+              date(2026, 4, 15): 14,
+              date(2026, 4, 16): 15,
+              date(2026, 4, 17): 16,
+              date(2026, 4, 18): 17,
+              date(2026, 4, 19): 18,
+              date(2026, 4, 20): 19,
+              date(2026, 4, 21): 20,
+              date(2026, 4, 22): 21,
+              date(2026, 4, 23): 22,
+              date(2026, 4, 24): 23,
+              date(2026, 4, 25): 24,
+              date(2026, 4, 26): 25,
+              date(2026, 4, 27): 26,
+              date(2026, 4, 28): 27,
+              date(2026, 4, 29): 28,
+              date(2026, 4, 30): 29,
+              date(2026, 5,  1): 30,
+              date(2026, 5,  2): 31,
+              date(2026, 5,  3): 32,
+              date(2026, 5,  4): 33,
+              date(2026, 5,  5): 34,
+              date(2026, 5,  6): 35,
+              date(2026, 5,  7): 36,
+              date(2026, 5,  8): 37,
+              date(2026, 5,  9): 38,
+              date(2026, 5, 10): 39,
+              date(2026, 5, 11): 40,
+              date(2026, 5, 12): 41,
+              date(2026, 5, 13): 42,
+              date(2026, 5, 14): 43,
+              date(2026, 5, 15): 44,
+              date(2026, 5, 16): 45,
+              date(2026, 5, 17): 46,
+              date(2026, 5, 18): 47,
+              date(2026, 5, 19): 48,
+              date(2026, 5, 20): 49,
+          }
+
+          today = date.today()
+          if today not in schedule:
+              print(f"No Omer reminder for {today}, skipping.")
+              exit(0)
+
+          day = schedule[today]
+          gmail_user = os.environ["GMAIL_USER"]
+          gmail_password = os.environ["GMAIL_PASSWORD"]
+          phone = os.environ["PHONE"].replace("+1", "").replace("-", "").replace(" ", "")
+          to_sms = f"{phone}@tmomail.net"
+
+          msg = MIMEText(f"Don't forget to count! Day {day}")
+          msg["Subject"] = ""
+          msg["From"] = gmail_user
+          msg["To"] = to_sms
+
+          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+              smtp.login(gmail_user, gmail_password)
+              smtp.send_message(msg)
+
+          print(f"Sent Day {day} reminder to {to_sms}")
+          EOF
