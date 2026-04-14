@@ -130,6 +130,9 @@
     <p class="subtitle">Sign up to receive a nightly SMS reminder to count the Omer. No app required — just a text message each evening.</p>
 
     <form id="form">
+      <label for="name">First name</label>
+      <input type="text" id="name" name="name" required placeholder="Moshe">
+
       <label for="phone">Phone number</label>
       <input type="tel" id="phone" name="phone" required placeholder="+15551234567">
 
@@ -174,6 +177,7 @@
       btn.textContent = 'Signing up...';
 
       const data = new URLSearchParams({
+        name: document.getElementById('name').value.trim(),
         phone: document.getElementById('phone').value.trim(),
         carrier: document.getElementById('carrier').value,
         timezone: document.getElementById('timezone').value,

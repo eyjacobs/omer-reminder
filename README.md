@@ -30,9 +30,9 @@ Fork [eyjacobs/omer-reminder](https://github.com/eyjacobs/omer-reminder) to your
 1. Go to [Google Sheets](https://sheets.google.com) and create a new spreadsheet.
 2. In the first row, add these exact column headers:
 
-   | A | B | C | D |
-   |---|---|---|---|
-   | Timestamp | Phone | Carrier | Timezone |
+   | A | B | C | D | E |
+   |---|---|---|---|---|
+   | Timestamp | Name | Phone | Carrier | Timezone |
 
 3. Note the spreadsheet ID from the URL — you'll need it in the next step. It's the long string between `/d/` and `/edit` in the URL.
 
@@ -50,6 +50,7 @@ function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   sheet.appendRow([
     new Date(),
+    e.parameter.name,
     e.parameter.phone,
     e.parameter.carrier,
     e.parameter.timezone

@@ -122,7 +122,9 @@ jobs:
                       print(f"Skipping incomplete row: {sub}")
                       continue
                   to_sms = f"{phone}@{gateway}"
-                  msg = MIMEText(f"Don't forget to count! Day {day}")
+                  name = sub.get('Name', '').strip()
+                  greeting = f"Hey {name}! " if name else ""
+                  msg = MIMEText(f"{greeting}Don't forget to count the Omer! Day {day}")
                   msg['Subject'] = ''
                   msg['From'] = gmail_user
                   msg['To'] = to_sms
