@@ -1,26 +1,53 @@
 name: Omer Reminder
 
-# Regular sends: UTC 00:00, 01:00, 02:00, 03:00 daily (~8 PM per US timezone)
-#   00:00 UTC = 8:00 PM EDT (Eastern)
-#   01:00 UTC = 8:00 PM CDT (Central)
-#   02:00 UTC = 8:00 PM MDT (Mountain)
-#   03:00 UTC = 8:00 PM PDT (Pacific)
-#
-# Friday sends: 90 minutes before Shabbat (Eastern times), skips the regular 8 PM send
-#   Apr 17 - 5:48 PM EDT = 21:48 UTC
-#   Apr 24 - 5:56 PM EDT = 21:56 UTC
-#   May 1  - 6:03 PM EDT = 22:03 UTC
-#   May 8  - 6:10 PM EDT = 22:10 UTC
-#   May 15 - 6:17 PM EDT = 22:17 UTC
+# All times are UTC. EDT = UTC-4, so 8:22 PM EDT = 00:22 UTC next calendar day.
+# Regular sends fire 10 minutes after nightfall (Eastern), sent to all subscribers.
+# Friday sends fire 90 minutes before Shabbat with a special message.
+
 on:
   schedule:
-    - cron: '0 0,1,2,3 * * *'  # Regular nightly sends
-    - cron: '48 21 17 4 *'     # Apr 17 - 90 min before Shabbat
-    - cron: '56 21 24 4 *'     # Apr 24 - 90 min before Shabbat
-    - cron: '3 22 1 5 *'       # May 1  - 90 min before Shabbat
-    - cron: '10 22 8 5 *'      # May 8  - 90 min before Shabbat
-    - cron: '17 22 15 5 *'     # May 15 - 90 min before Shabbat
-  workflow_dispatch:            # allows manual test runs from the Actions tab
+    # ── Regular nights (nightfall EDT + 10 min) ──────────────────────────────
+    - cron: '22 0 13 4 *'   # Apr 12  8:22 PM EDT  — Day 11
+    - cron: '23 0 14 4 *'   # Apr 13  8:23 PM EDT  — Day 12
+    - cron: '24 0 15 4 *'   # Apr 14  8:24 PM EDT  — Day 13
+    - cron: '25 0 16 4 *'   # Apr 15  8:25 PM EDT  — Day 14
+    - cron: '26 0 17 4 *'   # Apr 16  8:26 PM EDT  — Day 15
+    - cron: '28 0 19 4 *'   # Apr 18  8:28 PM EDT  — Day 17
+    - cron: '29 0 20 4 *'   # Apr 19  8:29 PM EDT  — Day 18
+    - cron: '30 0 21 4 *'   # Apr 20  8:30 PM EDT  — Day 19
+    - cron: '31 0 22 4 *'   # Apr 21  8:31 PM EDT  — Day 20
+    - cron: '32 0 23 4 *'   # Apr 22  8:32 PM EDT  — Day 21
+    - cron: '33 0 24 4 *'   # Apr 23  8:33 PM EDT  — Day 22
+    - cron: '35 0 26 4 *'   # Apr 25  8:35 PM EDT  — Day 24
+    - cron: '36 0 27 4 *'   # Apr 26  8:36 PM EDT  — Day 25
+    - cron: '37 0 28 4 *'   # Apr 27  8:37 PM EDT  — Day 26
+    - cron: '38 0 29 4 *'   # Apr 28  8:38 PM EDT  — Day 27
+    - cron: '39 0 30 4 *'   # Apr 29  8:39 PM EDT  — Day 28
+    - cron: '40 0 1 5 *'    # Apr 30  8:40 PM EDT  — Day 29
+    - cron: '42 0 3 5 *'    # May 2   8:42 PM EDT  — Day 31
+    - cron: '43 0 4 5 *'    # May 3   8:43 PM EDT  — Day 32
+    - cron: '44 0 5 5 *'    # May 4   8:44 PM EDT  — Day 33
+    - cron: '45 0 6 5 *'    # May 5   8:45 PM EDT  — Day 34
+    - cron: '46 0 7 5 *'    # May 6   8:46 PM EDT  — Day 35
+    - cron: '47 0 8 5 *'    # May 7   8:47 PM EDT  — Day 36
+    - cron: '49 0 10 5 *'   # May 9   8:49 PM EDT  — Day 38
+    - cron: '50 0 11 5 *'   # May 10  8:50 PM EDT  — Day 39
+    - cron: '51 0 12 5 *'   # May 11  8:51 PM EDT  — Day 40
+    - cron: '52 0 13 5 *'   # May 12  8:52 PM EDT  — Day 41
+    - cron: '53 0 14 5 *'   # May 13  8:53 PM EDT  — Day 42
+    - cron: '54 0 15 5 *'   # May 14  8:54 PM EDT  — Day 43
+    - cron: '56 0 17 5 *'   # May 16  8:56 PM EDT  — Day 45
+    - cron: '57 0 18 5 *'   # May 17  8:57 PM EDT  — Day 46
+    - cron: '58 0 19 5 *'   # May 18  8:58 PM EDT  — Day 47
+    - cron: '59 0 20 5 *'   # May 19  8:59 PM EDT  — Day 48
+    - cron: '0 1 21 5 *'    # May 20  9:00 PM EDT  — Day 49
+    # ── Fridays (90 min before Shabbat, Eastern) ─────────────────────────────
+    - cron: '48 21 17 4 *'  # Apr 17  5:48 PM EDT  — Day 16
+    - cron: '56 21 24 4 *'  # Apr 24  5:56 PM EDT  — Day 23
+    - cron: '3 22 1 5 *'    # May 1   6:03 PM EDT  — Day 30
+    - cron: '10 22 8 5 *'   # May 8   6:10 PM EDT  — Day 37
+    - cron: '17 22 15 5 *'  # May 15  6:17 PM EDT  — Day 44
+  workflow_dispatch:         # allows manual test runs from the Actions tab
 
 jobs:
   send-reminders:
@@ -37,51 +64,38 @@ jobs:
           from email.mime.text import MIMEText
           from datetime import date, datetime, timezone
 
-          # UTC hour -> timezone name for regular (~8 PM local) sends
-          TIMEZONE_FOR_HOUR = {
-              0: 'Eastern',
-              1: 'Central',
-              2: 'Mountain',
-              3: 'Pacific',
-          }
-
-          # Regular sends: UTC date -> Omer day number
-          # Key is the UTC date of the run. 8 PM EDT = midnight UTC, so UTC date is one day ahead of EDT date.
+          # UTC date -> Omer day number (for regular nightly sends)
+          # Key is the UTC date when the cron fires (8 PM EDT = midnight UTC next day)
           SCHEDULE = {
               date(2026, 4, 13): 11,
               date(2026, 4, 14): 12,
               date(2026, 4, 15): 13,
               date(2026, 4, 16): 14,
               date(2026, 4, 17): 15,
-              date(2026, 4, 18): 16,
               date(2026, 4, 19): 17,
               date(2026, 4, 20): 18,
               date(2026, 4, 21): 19,
               date(2026, 4, 22): 20,
               date(2026, 4, 23): 21,
               date(2026, 4, 24): 22,
-              date(2026, 4, 25): 23,
               date(2026, 4, 26): 24,
               date(2026, 4, 27): 25,
               date(2026, 4, 28): 26,
               date(2026, 4, 29): 27,
               date(2026, 4, 30): 28,
               date(2026, 5,  1): 29,
-              date(2026, 5,  2): 30,
               date(2026, 5,  3): 31,
               date(2026, 5,  4): 32,
               date(2026, 5,  5): 33,
               date(2026, 5,  6): 34,
               date(2026, 5,  7): 35,
               date(2026, 5,  8): 36,
-              date(2026, 5,  9): 37,
               date(2026, 5, 10): 38,
               date(2026, 5, 11): 39,
               date(2026, 5, 12): 40,
               date(2026, 5, 13): 41,
               date(2026, 5, 14): 42,
               date(2026, 5, 15): 43,
-              date(2026, 5, 16): 44,
               date(2026, 5, 17): 45,
               date(2026, 5, 18): 46,
               date(2026, 5, 19): 47,
@@ -89,8 +103,8 @@ jobs:
               date(2026, 5, 21): 49,
           }
 
-          # Friday sends: UTC date (same as EDT date, fires ~10 PM UTC) -> (day, nightfall_time)
-          # Nightfall = earliest time counting is permitted that evening
+          # Friday sends: UTC date -> (Omer day, nightfall time string)
+          # UTC date = same EDT date since these fire at ~10 PM UTC
           FRIDAY_SCHEDULE = {
               date(2026, 4, 17): (16, "8:17 PM"),
               date(2026, 4, 24): (23, "8:24 PM"),
@@ -103,10 +117,8 @@ jobs:
           today = now.date()
           hour  = now.hour
 
-          # Determine send type.
-          # Skip regular send on UTC Saturdays — Friday evening EDT is already covered by FRIDAY_SCHEDULE.
           is_friday_send  = today in FRIDAY_SCHEDULE and hour in (21, 22)
-          is_regular_send = today in SCHEDULE and hour in TIMEZONE_FOR_HOUR and today.weekday() != 5
+          is_regular_send = today in SCHEDULE and hour in (0, 1)
 
           if not is_friday_send and not is_regular_send:
               print(f"No send scheduled for UTC {today} hour {hour}. Skipping.")
@@ -118,23 +130,21 @@ jobs:
               csv_data = resp.read().decode('utf-8')
           all_subscribers = list(csv.DictReader(io.StringIO(csv_data)))
 
-          # Build (subscribers, message_body) pairs
+          # Build (subscriber, message) pairs
           sends = []
           if is_friday_send:
               day, nightfall = FRIDAY_SCHEDULE[today]
-              print(f"Friday send — Omer day {day}, nightfall {nightfall}, {len(all_subscribers)} subscriber(s).")
+              print(f"Friday send — Day {day}, nightfall {nightfall}, {len(all_subscribers)} subscriber(s).")
               for sub in all_subscribers:
                   name     = sub.get('Name', '').strip()
                   greeting = f"Hey {name}! " if name else ""
-                  body     = (f"{greeting}Don't forget to count Day {day} of the Omer tonight after {nightfall}. "
-                              f"Shabbat shalom!")
+                  body     = (f"{greeting}Don't forget to count Day {day} of the Omer "
+                              f"tonight after {nightfall}. Shabbat shalom!")
                   sends.append((sub, body))
           else:
-              day       = SCHEDULE[today]
-              target_tz = TIMEZONE_FOR_HOUR[hour]
-              subs      = [s for s in all_subscribers if s.get('Timezone', '').strip() == target_tz]
-              print(f"Regular send — Omer day {day}, {target_tz}, {len(subs)} subscriber(s).")
-              for sub in subs:
+              day  = SCHEDULE[today]
+              print(f"Regular send — Day {day}, {len(all_subscribers)} subscriber(s).")
+              for sub in all_subscribers:
                   name     = sub.get('Name', '').strip()
                   greeting = f"Hey {name}! " if name else ""
                   body     = f"{greeting}Don't forget to count the Omer! Day {day}"
