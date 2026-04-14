@@ -2,7 +2,7 @@
 
 A lightweight SMS reminder system for counting the Omer — the 49-day period between Passover and Shavuot. Each evening it sends a text message reminding you which day to count.
 
-Reminders are sent via Gmail's SMTP to your carrier's email-to-SMS gateway, triggered by a GitHub Actions workflow on a nightly schedule. No third-party SMS services or paid APIs required.
+Reminders run entirely in the cloud via GitHub Actions — **no computer needs to be on or awake.** All you need is a GitHub account and a Gmail address.
 
 ## How it works
 
@@ -59,9 +59,9 @@ The first night of Passover (day 1) can be found at [hebcal.com](https://www.heb
 
 If Actions are disabled on your fork, go to the **Actions** tab and enable them. The workflow will trigger automatically on the scheduled dates — no server or local machine required.
 
-## Local alternative
+## Local alternative (Mac only, requires Mac to be awake)
 
-If you prefer to run reminders from your own machine instead of GitHub Actions:
+If you prefer to run reminders from your own machine instead of GitHub Actions — note that **your Mac must be awake at send time** for cron jobs to fire:
 
 1. Copy `config.sh.example` to `config.sh` and fill in your values:
    ```bash
