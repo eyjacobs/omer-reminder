@@ -59,31 +59,9 @@ The first night of Passover (day 1) can be found at [hebcal.com](https://www.heb
 
 If Actions are disabled on your fork, go to the **Actions** tab and enable them. The workflow will trigger automatically on the scheduled dates — no server or local machine required.
 
-## Local alternative (Mac only, requires Mac to be awake)
-
-If you prefer to run reminders from your own machine instead of GitHub Actions — note that **your Mac must be awake at send time** for cron jobs to fire:
-
-1. Copy `config.sh.example` to `config.sh` and fill in your values:
-   ```bash
-   cp config.sh.example config.sh
-   ```
-2. Save your Gmail App Password to `~/.omer_app_password`:
-   ```bash
-   echo "your-app-password" > ~/.omer_app_password
-   chmod 600 ~/.omer_app_password
-   ```
-3. Run the cron setup script to install all reminders:
-   ```bash
-   bash setup_omer_cron.sh
-   ```
-
-This installs cron jobs that call `omer_send.sh` each evening with the correct day number.
-
 ## Files
 
 | File | Description |
 |---|---|
-| `.github/workflows/omer.yml` | GitHub Actions workflow — main way to run reminders |
-| `omer_send.sh` | Shell script for local cron-based sending |
-| `setup_omer_cron.sh` | Installs local cron jobs for the full Omer period |
-| `config.sh.example` | Template for local config (copy to `config.sh`) |
+| `.github/workflows/omer.yml` | GitHub Actions workflow — sends nightly reminders |
+| `config.sh.example` | Template showing the config variables used locally |
