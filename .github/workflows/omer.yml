@@ -1,70 +1,41 @@
 name: Omer Reminder
 
-# All times are UTC. EDT = UTC-4, so 8:12 PM EDT = 00:12 UTC next calendar day.
+# Runs at UTC 00:00, 01:00, 02:00, 03:00 daily — covering 8 PM across US timezones:
+#   00:00 UTC = 8:00 PM EDT (Eastern)
+#   01:00 UTC = 8:00 PM CDT (Central)
+#   02:00 UTC = 8:00 PM MDT (Mountain)
+#   03:00 UTC = 8:00 PM PDT (Pacific)
 on:
   schedule:
-    - cron: '12 0 13 4 *'  # Apr 12 8:12 PM EDT - Day 11
-    - cron: '13 0 14 4 *'  # Apr 13 8:13 PM EDT - Day 12
-    - cron: '14 0 15 4 *'  # Apr 14 8:14 PM EDT - Day 13
-    - cron: '15 0 16 4 *'  # Apr 15 8:15 PM EDT - Day 14
-    - cron: '16 0 17 4 *'  # Apr 16 8:16 PM EDT - Day 15
-    - cron: '17 0 18 4 *'  # Apr 17 8:17 PM EDT - Day 16
-    - cron: '18 0 19 4 *'  # Apr 18 8:18 PM EDT - Day 17
-    - cron: '19 0 20 4 *'  # Apr 19 8:19 PM EDT - Day 18
-    - cron: '20 0 21 4 *'  # Apr 20 8:20 PM EDT - Day 19
-    - cron: '21 0 22 4 *'  # Apr 21 8:21 PM EDT - Day 20
-    - cron: '22 0 23 4 *'  # Apr 22 8:22 PM EDT - Day 21
-    - cron: '23 0 24 4 *'  # Apr 23 8:23 PM EDT - Day 22
-    - cron: '24 0 25 4 *'  # Apr 24 8:24 PM EDT - Day 23
-    - cron: '25 0 26 4 *'  # Apr 25 8:25 PM EDT - Day 24
-    - cron: '26 0 27 4 *'  # Apr 26 8:26 PM EDT - Day 25
-    - cron: '27 0 28 4 *'  # Apr 27 8:27 PM EDT - Day 26
-    - cron: '28 0 29 4 *'  # Apr 28 8:28 PM EDT - Day 27
-    - cron: '29 0 30 4 *'  # Apr 29 8:29 PM EDT - Day 28
-    - cron: '30 0 1 5 *'   # Apr 30 8:30 PM EDT - Day 29
-    - cron: '31 0 2 5 *'   # May 1  8:31 PM EDT - Day 30
-    - cron: '32 0 3 5 *'   # May 2  8:32 PM EDT - Day 31
-    - cron: '33 0 4 5 *'   # May 3  8:33 PM EDT - Day 32
-    - cron: '34 0 5 5 *'   # May 4  8:34 PM EDT - Day 33
-    - cron: '35 0 6 5 *'   # May 5  8:35 PM EDT - Day 34
-    - cron: '36 0 7 5 *'   # May 6  8:36 PM EDT - Day 35
-    - cron: '37 0 8 5 *'   # May 7  8:37 PM EDT - Day 36
-    - cron: '38 0 9 5 *'   # May 8  8:38 PM EDT - Day 37
-    - cron: '39 0 10 5 *'  # May 9  8:39 PM EDT - Day 38
-    - cron: '40 0 11 5 *'  # May 10 8:40 PM EDT - Day 39
-    - cron: '41 0 12 5 *'  # May 11 8:41 PM EDT - Day 40
-    - cron: '42 0 13 5 *'  # May 12 8:42 PM EDT - Day 41
-    - cron: '43 0 14 5 *'  # May 13 8:43 PM EDT - Day 42
-    - cron: '44 0 15 5 *'  # May 14 8:44 PM EDT - Day 43
-    - cron: '45 0 16 5 *'  # May 15 8:45 PM EDT - Day 44
-    - cron: '46 0 17 5 *'  # May 16 8:46 PM EDT - Day 45
-    - cron: '47 0 18 5 *'  # May 17 8:47 PM EDT - Day 46
-    - cron: '48 0 19 5 *'  # May 18 8:48 PM EDT - Day 47
-    - cron: '49 0 20 5 *'  # May 19 8:49 PM EDT - Day 48
-    - cron: '50 0 21 5 *'  # May 20 8:50 PM EDT - Day 49
+    - cron: '0 0,1,2,3 * * *'
+  workflow_dispatch:  # allows manual test runs from the Actions tab
 
 jobs:
-  send-reminder:
+  send-reminders:
     runs-on: ubuntu-latest
     steps:
-      - name: Send Omer reminder
+      - name: Send Omer reminders
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
-          PHONE: ${{ secrets.PHONE }}
+          SHEET_CSV_URL: ${{ secrets.SHEET_CSV_URL }}
         run: |
           python3 << 'EOF'
-          import smtplib, os
+          import smtplib, os, csv, io, urllib.request
           from email.mime.text import MIMEText
-          from datetime import date, timezone, timedelta
+          from datetime import date, datetime, timezone
 
-          # Workflow runs in UTC; convert to EDT (UTC-4) to get the local date
-          edt = timezone(timedelta(hours=-4))
-          today = date.today()  # UTC date at time of run — matches schedule above
+          # UTC hour -> which timezone to send to at ~8 PM local time
+          TIMEZONE_FOR_HOUR = {
+              0: 'Eastern',
+              1: 'Central',
+              2: 'Mountain',
+              3: 'Pacific',
+          }
 
-          # Map UTC trigger date -> (EDT date for display, Omer day number)
-          # Key is the UTC date when the cron fires (one day ahead of EDT date)
-          schedule = {
+          # UTC date -> Omer day number
+          # Key is the UTC date when the cron fires (UTC is ahead of US local time at 8 PM)
+          SCHEDULE = {
               date(2026, 4, 13): 11,
               date(2026, 4, 14): 12,
               date(2026, 4, 15): 13,
@@ -106,24 +77,62 @@ jobs:
               date(2026, 5, 21): 49,
           }
 
-          if today not in schedule:
-              print(f"No Omer reminder for UTC {today}, skipping.")
+          now = datetime.now(timezone.utc)
+          today = now.date()
+          hour = now.hour
+
+          if today not in SCHEDULE:
+              print(f"No Omer reminder scheduled for UTC {today}. Skipping.")
               exit(0)
 
-          day = schedule[today]
-          gmail_user = os.environ["GMAIL_USER"]
-          gmail_password = os.environ["GMAIL_PASSWORD"]
-          phone = os.environ["PHONE"].replace("+1", "").replace("-", "").replace(" ", "")
-          to_sms = f"{phone}@tmomail.net"
+          if hour not in TIMEZONE_FOR_HOUR:
+              print(f"UTC hour {hour} is not a send time. Skipping.")
+              exit(0)
 
-          msg = MIMEText(f"Don't forget to count! Day {day}")
-          msg["Subject"] = ""
-          msg["From"] = gmail_user
-          msg["To"] = to_sms
+          day = SCHEDULE[today]
+          target_tz = TIMEZONE_FOR_HOUR[hour]
+          print(f"Omer day {day} — sending to {target_tz} subscribers.")
+
+          # Fetch subscriber list from published Google Sheet CSV
+          sheet_url = os.environ['SHEET_CSV_URL']
+          with urllib.request.urlopen(sheet_url) as resp:
+              csv_data = resp.read().decode('utf-8')
+
+          reader = csv.DictReader(io.StringIO(csv_data))
+          subscribers = [row for row in reader if row.get('Timezone', '').strip() == target_tz]
+
+          if not subscribers:
+              print(f"No {target_tz} subscribers found. Skipping.")
+              exit(0)
+
+          print(f"Found {len(subscribers)} subscriber(s) in {target_tz}.")
+
+          gmail_user = os.environ['GMAIL_USER']
+          gmail_password = os.environ['GMAIL_PASSWORD']
+          sent, errors = 0, 0
 
           with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
               smtp.login(gmail_user, gmail_password)
-              smtp.send_message(msg)
+              for sub in subscribers:
+                  phone = (sub.get('Phone', '')
+                           .replace('+1', '').replace('-', '')
+                           .replace(' ', '').replace('(', '').replace(')', ''))
+                  gateway = sub.get('Carrier', '').strip()
+                  if not phone or not gateway:
+                      print(f"Skipping incomplete row: {sub}")
+                      continue
+                  to_sms = f"{phone}@{gateway}"
+                  msg = MIMEText(f"Don't forget to count! Day {day}")
+                  msg['Subject'] = ''
+                  msg['From'] = gmail_user
+                  msg['To'] = to_sms
+                  try:
+                      smtp.send_message(msg)
+                      print(f"Sent Day {day} to {to_sms}")
+                      sent += 1
+                  except Exception as e:
+                      print(f"Error sending to {to_sms}: {e}")
+                      errors += 1
 
-          print(f"Sent Day {day} reminder to {to_sms}")
+          print(f"Done. Sent: {sent}, Errors: {errors}")
           EOF
