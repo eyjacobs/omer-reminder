@@ -12,9 +12,11 @@ function doPost(e) {
 
   var hebrewMonth = getHebrewMonth();
   var greeting = name ? 'Welcome, ' + name + '!' : 'Welcome!';
-  var message = greeting + " We're here to help you count the Omer! Have a great rest of " + hebrewMonth + '!';
+  var body = "We're here to help you count the Omer!";
+  var month = 'Have a great rest of ' + hebrewMonth + '!';
+  var message = greeting + ' ' + body + ' ' + month;
 
-  GmailApp.sendEmail(toSms, '', message);
+  GmailApp.sendEmail(toSms, 'Omer Reminder', message);
 
   return ContentService.createTextOutput('OK');
 }
