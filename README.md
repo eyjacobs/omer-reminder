@@ -55,6 +55,19 @@ The workflow in `.github/workflows/omer.yml` is pre-configured for **2026** (day
 
 The first night of Passover (day 1) can be found at [hebcal.com](https://www.hebcal.com/holidays/). Count begins the second night of Passover.
 
+### Adjusting for your timezone
+
+The schedule is currently set for **Eastern time (EDT, UTC-4)**. If you're in a different timezone, adjust the cron times in `omer.yml` accordingly. GitHub Actions cron always uses UTC, so add or subtract the offset for your timezone to keep reminders arriving around 8 PM local time:
+
+| Timezone | UTC offset | Adjustment |
+|---|---|---|
+| Eastern (EDT) | UTC-4 | no change needed |
+| Central (CDT) | UTC-5 | add 1 hour to each cron time |
+| Mountain (MDT) | UTC-6 | add 2 hours to each cron time |
+| Pacific (PDT) | UTC-7 | add 3 hours to each cron time |
+
+For example, if the cron entry is `12 0 13 4 *` (12:12 AM UTC = 8:12 PM EDT), a Pacific time user would change it to `12 3 13 4 *` (3:12 AM UTC = 8:12 PM PDT).
+
 ### 6. Enable GitHub Actions
 
 If Actions are disabled on your fork, go to the **Actions** tab and enable them. The workflow will trigger automatically on the scheduled dates — no server or local machine required.
