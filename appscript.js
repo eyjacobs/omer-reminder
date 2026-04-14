@@ -10,13 +10,9 @@ function doPost(e) {
   var cleanPhone = phone.replace('+1', '').replace('-', '').replace(' ', '');
   var toSms = cleanPhone + '@' + carrier;
 
-  var hebrewMonth = getHebrewMonth();
-  var greeting = name ? 'Welcome, ' + name + '!' : 'Welcome!';
-  var body = "We're here to help you count the Omer!";
-  var month = 'Have a great rest of ' + hebrewMonth + '!';
-  var message = greeting + ' ' + body + ' ' + month;
+  var message = 'Welcome to Omer Reminders!';
 
-  GmailApp.sendEmail(toSms, 'Omer Reminder', message);
+  GmailApp.sendEmail(toSms, '', message);
 
   return ContentService.createTextOutput('OK');
 }
