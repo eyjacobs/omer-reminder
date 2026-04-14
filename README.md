@@ -1,89 +1,89 @@
-# 🕯️ Omer Reminder — Nightly SMS Counter
+# Omer Reminder
 
-A lightweight macOS cron system that sends you a nightly text message reminding you which day of the Omer it is.
+A lightweight SMS reminder system for counting the Omer — the 49-day period between Passover and Shavuot. Each evening it sends a text message reminding you which day to count.
 
-## What It Does
+Reminders are sent via Gmail's SMTP to your carrier's email-to-SMS gateway, triggered by a GitHub Actions workflow on a nightly schedule. No third-party SMS services or paid APIs required.
 
-Each evening, your Mac automatically texts you a reminder like:
+## How it works
 
-> "Don't forget to count! Day 14"
-
-Send times increment by 1 minute each night (starting at 8:12 PM) to roughly track later nightfall times as spring progresses.
-
-## How It Works
-
-- `omer_send.sh` — sends a single SMS via [TextBelt](https://textbelt.com) for a given day number
-- `setup_omer_cron.sh` — installs 39 cron jobs (Days 11–49) into your crontab
+1. A GitHub Actions cron job fires each evening at the correct time (8:12–8:50 PM EDT, depending on the day).
+2. The workflow runs a Python script that looks up the current Omer day and sends an SMS via Gmail SMTP → T-Mobile email-to-SMS gateway.
+3. You receive a text that says: `Don't forget to count! Day N`
 
 ## Setup
 
-### 1. Configure your phone number
+### 1. Fork this repository
 
-Open `omer_send.sh` and replace the phone number with your own:
+Fork [eyjacobs/omer-reminder](https://github.com/eyjacobs/omer-reminder) to your own GitHub account.
 
-```bash
-PHONE="+1XXXXXXXXXX"
-```
+### 2. Create a Gmail App Password
 
-### 2. Make the scripts executable
+The workflow authenticates with Gmail using an [App Password](https://support.google.com/accounts/answer/185833) (not your regular Gmail password). To generate one:
 
-```bash
-chmod +x ~/omer_send.sh ~/setup_omer_cron.sh
-```
+1. Go to your Google Account → Security → 2-Step Verification (must be enabled)
+2. At the bottom of that page, click **App passwords**
+3. Create a new app password (name it anything, e.g. "Omer Reminder")
+4. Copy the 16-character password — you'll need it in the next step
 
-### 3. Install the cron jobs
+### 3. Add GitHub Secrets
 
-```bash
-~/setup_omer_cron.sh
-```
+In your forked repo, go to **Settings → Secrets and variables → Actions** and add three secrets:
 
-### 4. Grant cron Full Disk Access (macOS Catalina+)
+| Secret name | Value |
+|---|---|
+| `GMAIL_USER` | Your Gmail address (e.g. `you@gmail.com`) |
+| `GMAIL_PASSWORD` | The App Password from step 2 |
+| `PHONE` | Your phone number (e.g. `+15551234567`) |
 
-Without this, cron jobs run silently and fail.
+### 4. Update the carrier gateway (if not on T-Mobile)
 
-1. Open **System Settings → Privacy & Security → Full Disk Access**
-2. Click **+**, press **Cmd+Shift+G**, type `/usr/sbin/cron`, and add it
+The workflow sends SMS by emailing `<your-number>@tmomail.net`. If you're on a different carrier, update the `to_sms` line in `.github/workflows/omer.yml`:
 
-### 5. Test it
+| Carrier | Gateway |
+|---|---|
+| T-Mobile | `@tmomail.net` |
+| AT&T | `@txt.att.net` |
+| Verizon | `@vtext.com` |
+| Sprint | `@messaging.sprintpcs.com` |
 
-Send yourself a text right now to confirm it's working:
+### 5. Update the schedule for your year (if needed)
 
-```bash
-~/omer_send.sh 11
-```
+The workflow in `.github/workflows/omer.yml` is pre-configured for **2026** (days 11–49, starting April 12). If you're setting this up for a different year, you'll need to update:
 
-Then check the log:
+- The cron schedule entries (UTC times corresponding to ~8 PM local time on each evening)
+- The `schedule` dict in the Python script mapping UTC dates to Omer day numbers
 
-```bash
-cat ~/omer_log.txt
-```
+The first night of Passover (day 1) can be found at [hebcal.com](https://www.hebcal.com/holidays/). Count begins the second night of Passover.
 
-## SMS via TextBelt
+### 6. Enable GitHub Actions
 
-This project uses [TextBelt](https://textbelt.com)'s free tier, which allows **1 free text per day**. The free API key is `textbelt`.
+If Actions are disabled on your fork, go to the **Actions** tab and enable them. The workflow will trigger automatically on the scheduled dates — no server or local machine required.
 
-For reliable daily delivery, consider purchasing a TextBelt API key and updating `omer_send.sh`:
+## Local alternative
 
-```bash
---data-urlencode "key=YOUR_API_KEY"
-```
+If you prefer to run reminders from your own machine instead of GitHub Actions:
 
-## ⚠️ Important: Mac Must Be Awake
+1. Copy `config.sh.example` to `config.sh` and fill in your values:
+   ```bash
+   cp config.sh.example config.sh
+   ```
+2. Save your Gmail App Password to `~/.omer_app_password`:
+   ```bash
+   echo "your-app-password" > ~/.omer_app_password
+   chmod 600 ~/.omer_app_password
+   ```
+3. Run the cron setup script to install all reminders:
+   ```bash
+   bash setup_omer_cron.sh
+   ```
 
-Cron only runs when your Mac is awake. If it's asleep at send time, the text won't go out.
+This installs cron jobs that call `omer_send.sh` each evening with the correct day number.
 
-**Fix:** Go to **System Settings → Battery → Schedule** and set your Mac to wake a few minutes before 8:12 PM — or simply keep it plugged in and awake in the evenings.
+## Files
 
-## Coverage
-
-| Days | Dates (2026) | Send Time |
-|------|-------------|-----------|
-| Day 11 | April 12 | 8:12 PM |
-| Day 29 | April 30 | 8:30 PM |
-| Day 49 | May 20 | 8:50 PM |
-
-Days 1–10 are not included (assumed to have already passed or set up separately).
-
-## Log
-
-Every send attempt (success or failure) is logged to `~/omer_log.txt`.
+| File | Description |
+|---|---|
+| `.github/workflows/omer.yml` | GitHub Actions workflow — main way to run reminders |
+| `omer_send.sh` | Shell script for local cron-based sending |
+| `setup_omer_cron.sh` | Installs local cron jobs for the full Omer period |
+| `config.sh.example` | Template for local config (copy to `config.sh`) |
