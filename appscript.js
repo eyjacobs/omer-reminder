@@ -10,7 +10,7 @@ function doPost(e) {
   var cleanPhone = phone.replace('+1', '').replace('-', '').replace(' ', '');
   var toSms = cleanPhone + '@' + carrier;
 
-  var message = 'Welcome to Omer Reminders!';
+  var message = 'Welcome to Omer Reminders, ' + name + '!';
 
   GmailApp.sendEmail(toSms, '', message);
 
