@@ -48,14 +48,37 @@ This script receives signups from the form and writes them to your sheet.
 ```javascript
 function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  sheet.appendRow([
-    new Date(),
-    e.parameter.name,
-    e.parameter.phone,
-    e.parameter.carrier,
-    e.parameter.timezone
-  ]);
+  var name     = e.parameter.name || '';
+  var phone    = e.parameter.phone;
+  var carrier  = e.parameter.carrier;
+  var timezone = e.parameter.timezone;
+
+  sheet.appendRow([new Date(), name, phone, carrier, timezone]);
+
+  // Send welcome SMS immediately via Gmail → carrier email-to-SMS gateway
+  var cleanPhone = phone.replace('+1', '').replace(/-/g, '').replace(/ /g, '').replace(/[()]/g, '');
+  var toSms = cleanPhone + '@' + carrier;
+
+  var hebrewMonth = getHebrewMonth();
+  var greeting = name ? 'Welcome, ' + name + '!' : 'Welcome!';
+  var message = greeting + " We're here to help you count the Omer! Have a great rest of " + hebrewMonth + '!';
+
+  GmailApp.sendEmail(toSms, '', message);
+
   return ContentService.createTextOutput('OK');
+}
+
+function getHebrewMonth() {
+  var today = new Date();
+  var month = today.getMonth() + 1; // 1-indexed
+  var day   = today.getDate();
+
+  // Hebrew months during the 2026 Omer period
+  if (month === 4 && day < 18)                          return 'Nissan';
+  if ((month === 4 && day >= 18) || (month === 5 && day < 18)) return 'Iyar';
+  if (month === 5 && day >= 18)                         return 'Sivan';
+
+  return 'the month'; // fallback
 }
 ```
 
