@@ -1,14 +1,26 @@
 name: Omer Reminder
 
-# Runs at UTC 00:00, 01:00, 02:00, 03:00 daily — covering 8 PM across US timezones:
+# Regular sends: UTC 00:00, 01:00, 02:00, 03:00 daily (~8 PM per US timezone)
 #   00:00 UTC = 8:00 PM EDT (Eastern)
 #   01:00 UTC = 8:00 PM CDT (Central)
 #   02:00 UTC = 8:00 PM MDT (Mountain)
 #   03:00 UTC = 8:00 PM PDT (Pacific)
+#
+# Friday sends: 90 minutes before Shabbat (Eastern times), skips the regular 8 PM send
+#   Apr 17 - 5:48 PM EDT = 21:48 UTC
+#   Apr 24 - 5:56 PM EDT = 21:56 UTC
+#   May 1  - 6:03 PM EDT = 22:03 UTC
+#   May 8  - 6:10 PM EDT = 22:10 UTC
+#   May 15 - 6:17 PM EDT = 22:17 UTC
 on:
   schedule:
-    - cron: '0 0,1,2,3 * * *'
-  workflow_dispatch:  # allows manual test runs from the Actions tab
+    - cron: '0 0,1,2,3 * * *'  # Regular nightly sends
+    - cron: '48 21 17 4 *'     # Apr 17 - 90 min before Shabbat
+    - cron: '56 21 24 4 *'     # Apr 24 - 90 min before Shabbat
+    - cron: '3 22 1 5 *'       # May 1  - 90 min before Shabbat
+    - cron: '10 22 8 5 *'      # May 8  - 90 min before Shabbat
+    - cron: '17 22 15 5 *'     # May 15 - 90 min before Shabbat
+  workflow_dispatch:            # allows manual test runs from the Actions tab
 
 jobs:
   send-reminders:
@@ -25,7 +37,7 @@ jobs:
           from email.mime.text import MIMEText
           from datetime import date, datetime, timezone
 
-          # UTC hour -> which timezone to send to at ~8 PM local time
+          # UTC hour -> timezone name for regular (~8 PM local) sends
           TIMEZONE_FOR_HOUR = {
               0: 'Eastern',
               1: 'Central',
@@ -33,8 +45,8 @@ jobs:
               3: 'Pacific',
           }
 
-          # UTC date -> Omer day number
-          # Key is the UTC date when the cron fires (UTC is ahead of US local time at 8 PM)
+          # Regular sends: UTC date -> Omer day number
+          # Key is the UTC date of the run. 8 PM EDT = midnight UTC, so UTC date is one day ahead of EDT date.
           SCHEDULE = {
               date(2026, 4, 13): 11,
               date(2026, 4, 14): 12,
@@ -77,43 +89,65 @@ jobs:
               date(2026, 5, 21): 49,
           }
 
-          now = datetime.now(timezone.utc)
+          # Friday sends: UTC date (same as EDT date, fires ~10 PM UTC) -> (day, nightfall_time)
+          # Nightfall = earliest time counting is permitted that evening
+          FRIDAY_SCHEDULE = {
+              date(2026, 4, 17): (16, "8:17 PM"),
+              date(2026, 4, 24): (23, "8:24 PM"),
+              date(2026, 5,  1): (30, "8:31 PM"),
+              date(2026, 5,  8): (37, "8:38 PM"),
+              date(2026, 5, 15): (44, "8:45 PM"),
+          }
+
+          now   = datetime.now(timezone.utc)
           today = now.date()
-          hour = now.hour
+          hour  = now.hour
 
-          if today not in SCHEDULE:
-              print(f"No Omer reminder scheduled for UTC {today}. Skipping.")
+          # Determine send type.
+          # Skip regular send on UTC Saturdays — Friday evening EDT is already covered by FRIDAY_SCHEDULE.
+          is_friday_send  = today in FRIDAY_SCHEDULE and hour in (21, 22)
+          is_regular_send = today in SCHEDULE and hour in TIMEZONE_FOR_HOUR and today.weekday() != 5
+
+          if not is_friday_send and not is_regular_send:
+              print(f"No send scheduled for UTC {today} hour {hour}. Skipping.")
               exit(0)
 
-          if hour not in TIMEZONE_FOR_HOUR:
-              print(f"UTC hour {hour} is not a send time. Skipping.")
-              exit(0)
-
-          day = SCHEDULE[today]
-          target_tz = TIMEZONE_FOR_HOUR[hour]
-          print(f"Omer day {day} — sending to {target_tz} subscribers.")
-
-          # Fetch subscriber list from published Google Sheet CSV
+          # Fetch subscriber list
           sheet_url = os.environ['SHEET_CSV_URL']
           with urllib.request.urlopen(sheet_url) as resp:
               csv_data = resp.read().decode('utf-8')
+          all_subscribers = list(csv.DictReader(io.StringIO(csv_data)))
 
-          reader = csv.DictReader(io.StringIO(csv_data))
-          subscribers = [row for row in reader if row.get('Timezone', '').strip() == target_tz]
+          # Build (subscribers, message_body) pairs
+          sends = []
+          if is_friday_send:
+              day, nightfall = FRIDAY_SCHEDULE[today]
+              print(f"Friday send — Omer day {day}, nightfall {nightfall}, {len(all_subscribers)} subscriber(s).")
+              for sub in all_subscribers:
+                  name     = sub.get('Name', '').strip()
+                  greeting = f"Hey {name}! " if name else ""
+                  body     = (f"{greeting}Don't forget to count Omer tonight after {nightfall}. "
+                              f"Yesterday was Day {day - 1}. Shabbat shalom!")
+                  sends.append((sub, body))
+          else:
+              day       = SCHEDULE[today]
+              target_tz = TIMEZONE_FOR_HOUR[hour]
+              subs      = [s for s in all_subscribers if s.get('Timezone', '').strip() == target_tz]
+              print(f"Regular send — Omer day {day}, {target_tz}, {len(subs)} subscriber(s).")
+              for sub in subs:
+                  name     = sub.get('Name', '').strip()
+                  greeting = f"Hey {name}! " if name else ""
+                  body     = f"{greeting}Don't forget to count the Omer! Day {day}"
+                  sends.append((sub, body))
 
-          if not subscribers:
-              print(f"No {target_tz} subscribers found. Skipping.")
-              exit(0)
-
-          print(f"Found {len(subscribers)} subscriber(s) in {target_tz}.")
-
-          gmail_user = os.environ['GMAIL_USER']
+          # Send all messages
+          gmail_user     = os.environ['GMAIL_USER']
           gmail_password = os.environ['GMAIL_PASSWORD']
-          sent, errors = 0, 0
+          sent = errors  = 0
 
           with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
               smtp.login(gmail_user, gmail_password)
-              for sub in subscribers:
+              for sub, body in sends:
                   phone = (sub.get('Phone', '')
                            .replace('+1', '').replace('-', '')
                            .replace(' ', '').replace('(', '').replace(')', ''))
@@ -122,15 +156,13 @@ jobs:
                       print(f"Skipping incomplete row: {sub}")
                       continue
                   to_sms = f"{phone}@{gateway}"
-                  name = sub.get('Name', '').strip()
-                  greeting = f"Hey {name}! " if name else ""
-                  msg = MIMEText(f"{greeting}Don't forget to count the Omer! Day {day}")
+                  msg            = MIMEText(body)
                   msg['Subject'] = ''
-                  msg['From'] = gmail_user
-                  msg['To'] = to_sms
+                  msg['From']    = gmail_user
+                  msg['To']      = to_sms
                   try:
                       smtp.send_message(msg)
-                      print(f"Sent Day {day} to {to_sms}")
+                      print(f"Sent to {to_sms}: {body}")
                       sent += 1
                   except Exception as e:
                       print(f"Error sending to {to_sms}: {e}")
