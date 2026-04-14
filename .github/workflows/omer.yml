@@ -126,8 +126,8 @@ jobs:
               for sub in all_subscribers:
                   name     = sub.get('Name', '').strip()
                   greeting = f"Hey {name}! " if name else ""
-                  body     = (f"{greeting}Don't forget to count Omer tonight after {nightfall}. "
-                              f"Yesterday was Day {day - 1}. Shabbat shalom!")
+                  body     = (f"{greeting}Don't forget to count Day {day} of the Omer tonight after {nightfall}. "
+                              f"Shabbat shalom!")
                   sends.append((sub, body))
           else:
               day       = SCHEDULE[today]
