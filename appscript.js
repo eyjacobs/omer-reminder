@@ -7,16 +7,6 @@ function doPost(e) {
 
   sheet.appendRow([new Date(), name, phone, carrier, timezone]);
 
-  var cleanPhone = phone.replace(/\D/g, '');
-  if (cleanPhone.length === 11 && cleanPhone.charAt(0) === '1') {
-    cleanPhone = cleanPhone.substring(1);
-  }
-  var toSms = cleanPhone + '@' + carrier;
-
-  var message = 'Welcome to Omer Reminders, ' + name + '!';
-
-  GmailApp.sendEmail(toSms, '', message);
-
   return ContentService.createTextOutput('OK');
 }
 
