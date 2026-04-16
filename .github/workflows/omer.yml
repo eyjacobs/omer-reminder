@@ -203,9 +203,9 @@ jobs:
           with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
               smtp.login(gmail_user, gmail_password)
               for sub, body in sends:
-                  phone = (sub.get('Phone', '')
-                           .replace('+1', '').replace('-', '')
-                           .replace(' ', '').replace('(', '').replace(')', ''))
+                  phone = ''.join(c for c in sub.get('Phone', '') if c.isdigit())
+                  if len(phone) == 11 and phone[0] == '1':
+                      phone = phone[1:]
                   gateway = sub.get('Carrier', '').strip()
                   if not phone or not gateway:
                       print(f"Skipping incomplete row: {sub}")
