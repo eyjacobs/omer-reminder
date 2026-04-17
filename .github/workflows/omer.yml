@@ -5,49 +5,7 @@ name: Omer Reminder
 # Friday sends fire 90 minutes before Shabbat with a special message.
 
 on:
-  schedule:
-    # ── Regular nights (nightfall EDT + 10 min) ──────────────────────────────
-    - cron: '22 0 13 4 *'   # Apr 12  8:22 PM EDT  — Day 11
-    - cron: '23 0 14 4 *'   # Apr 13  8:23 PM EDT  — Day 12
-    - cron: '24 0 15 4 *'   # Apr 14  8:24 PM EDT  — Day 13
-    - cron: '25 0 16 4 *'   # Apr 15  8:25 PM EDT  — Day 14
-    - cron: '26 0 17 4 *'   # Apr 16  8:26 PM EDT  — Day 15
-    - cron: '28 0 19 4 *'   # Apr 18  8:28 PM EDT  — Day 17
-    - cron: '29 0 20 4 *'   # Apr 19  8:29 PM EDT  — Day 18
-    - cron: '30 0 21 4 *'   # Apr 20  8:30 PM EDT  — Day 19
-    - cron: '31 0 22 4 *'   # Apr 21  8:31 PM EDT  — Day 20
-    - cron: '32 0 23 4 *'   # Apr 22  8:32 PM EDT  — Day 21
-    - cron: '33 0 24 4 *'   # Apr 23  8:33 PM EDT  — Day 22
-    - cron: '35 0 26 4 *'   # Apr 25  8:35 PM EDT  — Day 24
-    - cron: '36 0 27 4 *'   # Apr 26  8:36 PM EDT  — Day 25
-    - cron: '37 0 28 4 *'   # Apr 27  8:37 PM EDT  — Day 26
-    - cron: '38 0 29 4 *'   # Apr 28  8:38 PM EDT  — Day 27
-    - cron: '39 0 30 4 *'   # Apr 29  8:39 PM EDT  — Day 28
-    - cron: '40 0 1 5 *'    # Apr 30  8:40 PM EDT  — Day 29
-    - cron: '42 0 3 5 *'    # May 2   8:42 PM EDT  — Day 31
-    - cron: '43 0 4 5 *'    # May 3   8:43 PM EDT  — Day 32
-    - cron: '44 0 5 5 *'    # May 4   8:44 PM EDT  — Day 33
-    - cron: '45 0 6 5 *'    # May 5   8:45 PM EDT  — Day 34
-    - cron: '46 0 7 5 *'    # May 6   8:46 PM EDT  — Day 35
-    - cron: '47 0 8 5 *'    # May 7   8:47 PM EDT  — Day 36
-    - cron: '49 0 10 5 *'   # May 9   8:49 PM EDT  — Day 38
-    - cron: '50 0 11 5 *'   # May 10  8:50 PM EDT  — Day 39
-    - cron: '51 0 12 5 *'   # May 11  8:51 PM EDT  — Day 40
-    - cron: '52 0 13 5 *'   # May 12  8:52 PM EDT  — Day 41
-    - cron: '53 0 14 5 *'   # May 13  8:53 PM EDT  — Day 42
-    - cron: '54 0 15 5 *'   # May 14  8:54 PM EDT  — Day 43
-    - cron: '56 0 17 5 *'   # May 16  8:56 PM EDT  — Day 45
-    - cron: '57 0 18 5 *'   # May 17  8:57 PM EDT  — Day 46
-    - cron: '58 0 19 5 *'   # May 18  8:58 PM EDT  — Day 47
-    - cron: '59 0 20 5 *'   # May 19  8:59 PM EDT  — Day 48
-    - cron: '0 1 21 5 *'    # May 20  9:00 PM EDT  — Day 49
-    # ── Fridays (90 min before Shabbat, Eastern) ─────────────────────────────
-    - cron: '48 21 17 4 *'  # Apr 17  5:48 PM EDT  — Day 16
-    - cron: '56 21 24 4 *'  # Apr 24  5:56 PM EDT  — Day 23
-    - cron: '3 22 1 5 *'    # May 1   6:03 PM EDT  — Day 30
-    - cron: '10 22 8 5 *'   # May 8   6:10 PM EDT  — Day 37
-    - cron: '17 22 15 5 *'  # May 15  6:17 PM EDT  — Day 44
-  workflow_dispatch:         # allows manual test runs from the Actions tab
+  workflow_dispatch:         # triggered by cron-job.org at the correct time each night
 
 jobs:
   send-reminders:
