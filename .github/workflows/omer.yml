@@ -140,7 +140,7 @@ jobs:
                   name     = sub.get('Name', '').strip()
                   greeting = f"Hey {name}! " if name else ""
                   hebrew   = HEBREW.get(day, '')
-                  body     = (f"{greeting}Don't forget to count Day {day} of the Omer "
+                  body     = (f"{greeting}Don't forget to count Day {day} "
                               f"tonight after {nightfall}. Shabbat shalom! {hebrew}")
                   sends.append((sub, body))
           else:
@@ -183,3 +183,4 @@ jobs:
 
           print(f"Done. Sent: {sent}, Errors: {errors}")
           EOF
+
